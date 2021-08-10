@@ -1,0 +1,25 @@
+{
+    "name": "enercalcapi/readings",
+    "description": "EnerCalc Readings API.",
+    "type": "library",
+    "require": {
+        "illuminate/support": "8",
+        "php": "^7.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "9.5.x-dev"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Enercalcapi\\Readings\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "EnerCalcAPI",
+            "email": "dev@enercalc.nl"
+        }
+    ],
+    "minimum-stability": "dev"
+}

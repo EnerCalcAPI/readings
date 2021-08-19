@@ -35,13 +35,15 @@ Add the service provider to ``` config/app.php ``` under ``` providers ``` :
 ### File .env
 
 Add the following to your `.env` file :
-```bash
-ENERCALC_USER           = [USERNAME]
-ENERCALC_PASSWORD       = [PASSWORD]
-ENERCALC_URL            = [URL]
-ENERCALC_DEBUG          = [false]
-ENERCALC_TOKEN_STORAGE  = [time in seconds]
-```
+| Option | | Value |
+| --- | --- | --- |
+| Required | | |
+| ENERCALC_USER | = | [ USERNAME ] |
+| ENERCALC_PASSWORD | = | [ PASSWORD ] |
+| ENERCALC_URL | = | [ URL ] |
+| ENERCALC_DEBUG | = | [ true OR false ] |
+| Optional | | |
+| ENERCALC_TOKEN_STORAGE | = | [ TIME IN SECONDS ] |
 
 ## License
 

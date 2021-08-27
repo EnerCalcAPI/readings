@@ -43,7 +43,7 @@ Add the following to your `.env` file :
 | ENERCALC_URL | = | [ URL ] |
 | ENERCALC_DEBUG | = | [ true OR false ] |
 | Optional | | |
-| ENERCALC_TOKEN_STORAGE | = | [ TIME IN SECONDS ] |
+| ENERCALC_TOKEN_STORAGE | = | [ TIME IN MINUTES ] |
 
 ## License
 

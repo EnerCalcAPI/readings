@@ -3,7 +3,7 @@
 [![Latest Version](https://img.shields.io/badge/release-v0.0.1-blue?style=plastic)](https://github.com/EnerCalcAPI/readings/releases) [![Github](https://img.shields.io/github/issues/EnerCalcAPI/readings?style=plastic)](https://github.com/EnerCalcAPI/readings/issues) [![License](https://img.shields.io/github/license/EnerCalcAPI/readings?style=plastic)](https://opensource.org/licenses/MIT)
 
 ## About the EnerCalc Readings API.
-The documentation provides you all the information needed to get up and running!
+The [documentation](https://api.enercalc.nl/docs/) provides you all the information needed to get up and running!
 
 Make sure you read the documentation if you aren't familiar with Laravel or packages.
 
@@ -41,9 +41,9 @@ Add the following to your `.env` file :
 | ENERCALC_USER | = | [ USERNAME ] |
 | ENERCALC_PASSWORD | = | [ PASSWORD ] |
 | ENERCALC_URL | = | [ URL ] |
-| ENERCALC_DEBUG | = | [ true \|\| false ] |
+| ENERCALC_DEBUG | = | [ true OR false ] |
 | Optional | | |
-| ENERCALC_TOKEN_STORAGE | = | [ TIME IN SECONDS ] |
+| ENERCALC_TOKEN_STORAGE | = | [ TIME IN MINUTES ] |
 
 ## License
 

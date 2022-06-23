@@ -23,9 +23,9 @@
     ],
     "extra": {
         "laravel": {
-            "providers": {
+            "providers": [
                 "enercalcapi\\readings\\EnercalcReadingsApiServiceProvider"
-            }
+            ]
         }
     },
     "minimum-stability": "dev"

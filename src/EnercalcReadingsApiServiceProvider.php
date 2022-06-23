@@ -2,7 +2,6 @@
 
 namespace Enercalcapi\Readings;
 
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 
 class EnercalcReadingsApiServiceProvider extends ServiceProvider
@@ -15,8 +14,6 @@ class EnercalcReadingsApiServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        // Uncomment to publish config files from vendor to laravel project project 
-        //$this->publishes( [ $this->configPath() => $this->getConfigName() ], 'config');
     }
 
     /**
@@ -26,7 +23,7 @@ class EnercalcReadingsApiServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->mergeConfigFrom( $this->configPath() , 'config');
+        $this->mergeConfigFrom($this->configPath(), 'config');
     }
 
     /**
@@ -34,7 +31,8 @@ class EnercalcReadingsApiServiceProvider extends ServiceProvider
      *
      * @return string
      */
-    public function configPath(){
+    public function configPath()
+    {
         return __DIR__ . '/../config/config.php';
     }
 
@@ -47,5 +45,4 @@ class EnercalcReadingsApiServiceProvider extends ServiceProvider
     {
         return config_path('enercalcreadingsapi.php');
     }
-
 }

@@ -41,7 +41,6 @@ Add the following to your `.env` file :
 | ENERCALC_USER | = | [ USERNAME ] |
 | ENERCALC_PASSWORD | = | [ PASSWORD ] |
 | ENERCALC_URL | = | [ URL ] |
-| ENERCALC_DEBUG | = | [ true OR false ] |
 | Optional | | |
 | ENERCALC_TOKEN_STORAGE | = | [ TIME IN MINUTES ] |
 

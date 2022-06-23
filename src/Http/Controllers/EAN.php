@@ -1,9 +1,9 @@
 <?php
- 
- namespace Enercalcapi\Readings\Http\Controllers;
- 
+
+namespace Enercalcapi\Readings\Http\Controllers;
+
 use Illuminate\Contracts\Validation\Rule;
- 
+
 class EAN implements Rule
 {
     /**
@@ -15,7 +15,7 @@ class EAN implements Rule
     {
         //
     }
- 
+
     /**
      * Determine if the validation rule passes.
      *
@@ -27,7 +27,7 @@ class EAN implements Rule
     {
         return self::isEAN($value);
     }
- 
+
     /**
      * Get the validation error message.
      *
@@ -37,7 +37,7 @@ class EAN implements Rule
     {
         return 'Invalid EAN13 or EAN18';
     }
- 
+
     /**
      * Checks if a value oblies to the rules of EAN13 or EAN18
      *
@@ -48,7 +48,7 @@ class EAN implements Rule
     {
         return self::isEAN13($value) || self::isEAN18($value);
     }
- 
+
     /**
      * Checks if a value oblies to the rules of EAN13
      *
@@ -61,7 +61,7 @@ class EAN implements Rule
             strlen($value) == 13 &&
             self::validChecksum($value);
     }
- 
+
     /**
      * Checks if a value oblies to the rules of EAN13
      *
@@ -74,7 +74,7 @@ class EAN implements Rule
             strlen($value) == 18 &&
             self::validChecksum($value);
     }
- 
+
     /**
      * Checks if a value oblies to the rules of EAN
      *
@@ -95,7 +95,7 @@ class EAN implements Rule
         $checksum = (10 - ($checksum % 10)) % 10;
         return intval($value[strlen($value) - 1]) == $checksum;
     }
- 
+
     protected static function getWeights($length): array
     {
         switch ($length) {

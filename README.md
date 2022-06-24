@@ -1,6 +1,7 @@
 # Readings
 
 [![Latest Version](https://img.shields.io/badge/release-v0.0.1-blue?style=plastic)](https://github.com/EnerCalcAPI/readings/releases) [![Github](https://img.shields.io/github/issues/EnerCalcAPI/readings?style=plastic)](https://github.com/EnerCalcAPI/readings/issues) [![License](https://img.shields.io/github/license/EnerCalcAPI/readings?style=plastic)](https://opensource.org/licenses/MIT)
+[![Version](https://img.shields.io/badge/version-pre--release-red?style=plastic)](http://www.google.nl)
 
 ## About the EnerCalc Readings API.
 The [documentation](https://api.enercalc.nl/docs/) provides you all the information needed to get up and running!

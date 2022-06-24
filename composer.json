@@ -24,7 +24,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "enercalcapi\\readings\\EnercalcReadingsApiServiceProvider"
+                "Enercalcapi\\Readings\\EnercalcReadingsApiServiceProvider"
             ]
         }
     },

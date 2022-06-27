@@ -142,7 +142,7 @@ class RequestController extends BaseController
 
         $date   = $this->ValiDate($reason, $date);
 
-        if ($date_to !== NULL) {
+        if ($date_to !== null) {
             $date_to    = $this->ValiDate($reason, $date_to);
             return array(
                 'reading_date_from' => $date,
@@ -150,7 +150,7 @@ class RequestController extends BaseController
             );
         } else {
             return array(
-                'reading_date' => $date
+                'reading_date' => $date,
             );
         }
     }
@@ -234,7 +234,7 @@ class RequestController extends BaseController
                 $url,
                 [
                     $date,
-                    $eans
+                    $eans,
                 ]
             )->json();
     }

@@ -54,7 +54,7 @@ class ReadingsService
             if (Cache::has('refresh_token')) {
                 $this->refreshAccessToken();
             } else {*/
-                $this->requestAccessToken();
+                dd('getAccessToken', $this->requestAccessToken());
             //}
         }
 
@@ -88,7 +88,7 @@ class ReadingsService
             Cache::put('access_token', $this->access_token, ($this->token_storage - 3600));
             Cache::put('refresh_token', $this->refresh_token, ($this->token_storage - 60));
         } catch (Exception $exception) {
-            dd(__LINE__);
+            dd('requestAccessToken', __LINE__, $exception);
             throw new Exception($exception);
         }
     }
@@ -107,7 +107,7 @@ class ReadingsService
                     'refresh_token' => Cache::get('refresh_token'),
                 ])
                 ->json();
-            dd($response);
+            dd('refreshAccessToken', __LINE__, $response);
 
             $response = Http::withOptions([
                 'verify' => (config('app.env') == 'production'),
@@ -118,7 +118,7 @@ class ReadingsService
                     'refresh_token' => Cache::get('refresh_token'),
                 ])
                 ->json();
-            dd(__line__, $response);
+            dd('refreshAccessToken', __line__, $response);
             /* - - - - - - - - - - - - - - */
 
             $this->validateAccessTokenResponse($response);
@@ -129,8 +129,8 @@ class ReadingsService
 
             Cache::put('access_token', $this->access_token, ($this->token_storage - 3600));
             Cache::put('refresh_token', $this->refresh_token, ($this->token_storage - 60));
-        } catch (Exception $e) {
-            dd($e);
+        } catch (Exception $exception) {
+            dd('refreshAccessToken', __line__, $exception);
         }
     }
 

@@ -167,7 +167,7 @@ class ReadingsService
             case 'month':
                 break;
             default:
-                dd(__LINE__);
+                dd('getP4RequestUrl', __LINE__);
                 throw new Exception('Found invalide reason: ' . $reason . '!');
         }
 
@@ -186,7 +186,7 @@ class ReadingsService
             $date = Carbon::parse($date);
             return $date->format('Y-m-d');
         } catch (Exception $e) {
-            dd(__LINE__);
+            dd('validateDate', __LINE__);
             throw new Exception('Found Invalide date in date array');
         }
     }
@@ -211,7 +211,7 @@ class ReadingsService
                 'reading_date_to' => $this->validateDate($date_array[1]),
             );
         } else {
-            dd(__LINE__);
+            dd('dateArrayToString', __LINE__);
             throw new Exception('Invalide size of date array!');
         }
     }
@@ -226,7 +226,7 @@ class ReadingsService
     {
         foreach ($ean_array as $ean) {
             if (!EAN::isEAN18($ean)) {
-                dd(__LINE__);
+                dd('eanArrayToString', __LINE__);
                 throw new Exception('Found invalide EAN-code in ean array!');
             }
         }
@@ -275,7 +275,7 @@ class ReadingsService
 
             return $response;
         } catch (Exception $e) {
-            dd(__LINE__);
+            dd('requestP4Data', __LINE__);
             throw new Exception((string) $e);
         }
     }

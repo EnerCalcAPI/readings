@@ -69,11 +69,11 @@ class RequestController extends BaseController
             $validated_response = $this->ValideResponse( $response );
             dd( $validated_response );
             return $validated_response;*/
-            dd(__LINE__, $url);
+            dd('ReadingRequest', __LINE__, $url);
         } else {
             abort(401);
         }
-        dd(__LINE__, $access_token, Cache::get('access_token'));
+        dd('ReadingRequest', __LINE__, $access_token, Cache::get('access_token'));
     }
 
     /**
@@ -96,7 +96,7 @@ class RequestController extends BaseController
 
             if ($this->ValideResponse($response)) {
                 //true
-                dd($response);
+                dd('GetAccessToken', $response);
                 // Return access_token
                 //return $response; //['data']['access_token']
             } else {

@@ -260,9 +260,7 @@ class ReadingsService
      */
     public function requestP4Data(string $reason, array $eans, array $date): array
     {
-        return ['hi'];
         try {
-            return ['hello', 'world'];
             $response = Http::withToken($this->getAccessToken())
                 ->acceptJson()
                 ->post(
@@ -274,7 +272,7 @@ class ReadingsService
                 )->json();
 
             $this->validateAccessTokenResponse($response);
-            dd('hi');
+
             return $response;
         } catch (Exception $e) {
             dd('requestP4Data', __LINE__);

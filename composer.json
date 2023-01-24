@@ -8,11 +8,19 @@
         "php": "^7.4"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.5"
+        "phpunit/phpunit": "^9.5",
+        "orchestra/testbench": "^6.25",
+        "orchestra/database": "^6"
     },
     "autoload": {
         "psr-4": {
-            "Enercalcapi\\Readings\\": "src/"
+            "Enercalcapi\\Readings\\": "src/",
+            "Enercalcapi\\Readings\\Tests\\": "tests/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Enercalcapi\\Readings\\Tests\\": "tests/"
         }
     },
     "authors": [
@@ -27,6 +35,11 @@
                 "Enercalcapi\\Readings\\EnercalcReadingsApiServiceProvider"
             ]
         }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "@php ./vendor/bin/testbench package:discover"
+        ]
     },
     "minimum-stability": "dev",
     "prefer-stable" : true

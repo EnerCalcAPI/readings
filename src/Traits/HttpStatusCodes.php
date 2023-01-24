@@ -45,7 +45,6 @@ trait HttpStatusCodes
     public static function getHttpStatusCode(array $errorCode): int
     {
         return $errorCode['status'];
-        //return $errorCode->getStatusCode();
     }
 
     /**

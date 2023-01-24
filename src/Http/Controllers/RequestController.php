@@ -28,7 +28,7 @@ class RequestController extends BaseController
     public $token;
     public $url;
     public $debug;
-    public $token_storage;
+    public $tokenStorage;
 
     /**
      * Function __construct
@@ -42,8 +42,8 @@ class RequestController extends BaseController
         $config              = app('config')->get('config');
         $this->user          = $config['ENERCALC_USER'];
         $this->password      = $config['ENERCALC_PASSWORD'];
-        $this->token         = NULL;
-        $this->token_storage = $config['ENERCALC_TOKEN_STORAGE'];
+        $this->token         = null;
+        $this->tokenStorage  = $config['ENERCALC_TOKEN_STORAGE'];
         $this->url           = $config['ENERCALC_URL'];
         $this->debug         = $config['ENERCALC_DEBUG'];
     }
@@ -52,20 +52,20 @@ class RequestController extends BaseController
      * @param string $reason
      * @param mixed $eans
      * @param mixed $date
-     * @param mixed $date_to
+     * @param mixed $dateTo
      *
      * @return Json
      **/
-    public function ReadingRequest(string $reason, $eans, $date, $date_to = NULL)
+    public function ReadingRequest(string $reason, $eans, $date, $dateTo = null)
     {
-        $access_token = $this->GetAccessToken();
+        $accessToken = $this->GetAccessToken();
 
-        if ($access_token) {
+        if ($accessToken) {
             $url                = $this->GetRequestUrl($reason);
-            /*$date               = $this->GetRequestDate( $reason, $date, $date_to );
+            /*$date               = $this->GetRequestDate( $reason, $date, $dateTo );
             $eans               = $this->GetRequestEanArray( $eans );
-            dd( $access_token, $url, $date, $eans );
-            $response           = $this->RequestData( $access_token, $url, $date, $eans );
+            dd( $accessToken, $url, $date, $eans );
+            $response           = $this->RequestData( $accessToken, $url, $date, $eans );
             $validated_response = $this->ValideResponse( $response );
             dd( $validated_response );
             return $validated_response;*/
@@ -73,7 +73,7 @@ class RequestController extends BaseController
         } else {
             abort(401);
         }
-        dd('ReadingRequest', __LINE__, $access_token, Cache::get('access_token'));
+        dd('ReadingRequest', __LINE__, $accessToken, Cache::get('access_token'));
     }
 
     /**
@@ -84,21 +84,21 @@ class RequestController extends BaseController
      **/
     protected function GetAccessToken(): ?string
     {
-        return Cache::remember('access_token', $this->token_storage, function () {
+        return Cache::remember('access_token', $this->tokenStorage, function () {
             $response = Http::withOptions([
                 'verify' => (config('app.env') == 'production'),
             ])
-                ->acceptJson()
-                ->post($this->url . 'auth/login', [
-                    'email' => $this->user . '1',
-                    'password' => $this->password,
-                ]); // ->json()
+            ->acceptJson()
+            ->post($this->url . 'auth/login', [
+                'email' => $this->user . '1',
+                'password' => $this->password,
+            ]); // ->json()
 
             if ($this->ValideResponse($response)) {
                 //true
                 dd('GetAccessToken', $response);
-                // Return access_token
-                //return $response; //['data']['access_token']
+                // Return accessToken
+                //return $response; //['data']['accessToken']
             } else {
                 return null;
             }
@@ -133,25 +133,25 @@ class RequestController extends BaseController
     /**
      * @param string $reason
      * @param mixed $date
-     * @param mixed|null $date_to
+     * @param mixed|null $dateTo
      * 
      * @return array
      **/
-    private function GetRequestDate(string $reason, $date, $date_to): ?array
+    private function GetRequestDate(string $reason, $date, $dateTo): ?array
     {
 
         $date   = $this->ValiDate($reason, $date);
 
-        if ($date_to !== null) {
-            $date_to    = $this->ValiDate($reason, $date_to);
-            return array(
+        if ($dateTo !== null) {
+            $dateTo    = $this->ValiDate($reason, $dateTo);
+            return [
                 'reading_date_from' => $date,
-                'reading_date_to'   => $date_to,
-            );
+                'reading_date_to'   => $dateTo,
+            ];
         } else {
-            return array(
+            return [
                 'reading_date' => $date,
-            );
+            ];
         }
     }
 
@@ -164,8 +164,8 @@ class RequestController extends BaseController
     private function ValiDate(string $reason, $date): ?string
     {
         try {
-            $parsed_date = Carbon::parse($date);
-            return $this->FormatDate($reason, $parsed_date);
+            $parsedDate = Carbon::parse($date);
+            return $this->FormatDate($reason, $parsedDate);
         } catch (InvalidFormatException $e) {
             // Invalide input
             abort(406);
@@ -198,10 +198,10 @@ class RequestController extends BaseController
             foreach ($eans as $ean) {
                 $this->ValiDatean18($ean);
             }
-            return array('connection_eans' => $eans);
+            return ['connection_eans' => $eans];
         } else {
             $this->ValiDatean18($eans);
-            return array('connection_ean' => $eans);
+            return ['connection_ean' => $eans];
         }
     }
 
@@ -217,18 +217,18 @@ class RequestController extends BaseController
     }
 
     /**
-     * @param string $access_token
+     * @param string $accessToken
      * @param string $url
      * @param array $date
      * @param array $eans
      * 
      * @return object
      **/
-    public function RequestData(string $access_token, string $url, array $date, array $eans): object
+    public function RequestData(string $accessToken, string $url, array $date, array $eans): object
     {
         $date = array_merge($date, $eans);
 
-        return Http::withToken($access_token)
+        return Http::withToken($accessToken)
             ->acceptJson()
             ->post(
                 $url,

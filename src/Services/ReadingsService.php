@@ -7,6 +7,7 @@ namespace Enercalcapi\Readings\Services;
 use Enercalcapi\Readings\Http\Controllers\EAN;
 use Enercalcapi\Readings\Traits\HttpStatusCodes;
 use Exception;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -17,10 +18,11 @@ class ReadingsService
 
     public $user;
     public $password;
+    public $baseUrl;
+
     public $access_token;
     public $refresh_token;
-    public $url;
-    public $token_storage;
+    public $expires_in;
 
     /**
      * Function __construct
@@ -34,10 +36,9 @@ class ReadingsService
         $config              = app('config')->get('config');
         $this->user          = $config['ENERCALC_USER'];
         $this->password      = $config['ENERCALC_PASSWORD'];
+        $this->baseUrl       = $config['ENERCALC_URL'];
         $this->access_token  = null;
         $this->refresh_token = null;
-        $this->token_storage = null;
-        $this->url           = $config['ENERCALC_URL'];
     }
 
     /**
@@ -45,110 +46,121 @@ class ReadingsService
      *
      * @return string
      **/
-    protected function getAccessToken(): string
-    {
-        $this->access_token = Cache::get('access_token');
-        
-        if (!$this->access_token) {
-            /*
-            if (Cache::has('refresh_token')) {
-                $this->refreshAccessToken();
-            } else {*/
-                dd('getAccessToken', $this->requestAccessToken());
-            //}
+    public function getAccessToken(): string
+    {   
+        if (Cache::has('readingService.access_token')) {
+            return Cache::get('readingService.access_token');
         }
+        
+        if (Cache::has('readingService.refresh_token')) {
+            $this->refreshToken();
+            return $this->access_token;
+        }
+
+        $this->login();
 
         return $this->access_token;
     }
 
     /**
-     * Function requestAccessToken()
+     * Function login()
      *
      * @return void
      */
-    protected function requestAccessToken(): void
+    public function login(): void
     {
-        try {
-            $response = Http::retry(3, 1500)
-                ->withOptions([
-                    'verify' => (config('app.env') == 'production'),
-                ])
-                ->acceptJson()
-                ->post($this->url . 'auth/login', [
-                    'email' => $this->user,
-                    'password' => $this->password,
-                ])->json();
-
-            $this->validateAccessTokenResponse($response);
-
-            $this->access_token = $response['data']['access_token'];
-            $this->refresh_token = $response['data']['refresh_token'];
-            $this->token_storage = $response['data']['expires_in'];
-
-            Cache::put('access_token', $this->access_token, ($this->token_storage - 3600));
-            Cache::put('refresh_token', $this->refresh_token, ($this->token_storage - 60));
-        } catch (Exception $exception) {
-            dd('requestAccessToken', __LINE__, $exception);
-            throw new Exception($exception);
-        }
-    }
-
-    /**
-     * RefreshAccessToken() function @TODO
-     *
-     * @return void
-     */
-    protected function refreshAccessToken(): void
-    {
-        try {
-            // use Cache::pull() te get value from cache and delete it afterwards
-            $response = Http::withToken(Cache::get('refresh_token'))
-                ->post($this->url . 'auth/refresh-token', [
-                    'refresh_token' => Cache::get('refresh_token'),
-                ])
-                ->json();
-            dd('refreshAccessToken', __LINE__, $response);
-
-            $response = Http::withOptions([
-                'verify' => (config('app.env') == 'production'),
+        $response = Http::retry(3, 1500)
+            ->withOptions([
+                'verify' => true,
             ])
-                ->acceptJson()
-                ->post($this->url . 'auth/refresh-token', [
-                    'token_type' => "Bearer",
-                    'refresh_token' => Cache::get('refresh_token'),
-                ])
-                ->json();
-            dd('refreshAccessToken', __line__, $response);
-            /* - - - - - - - - - - - - - - */
+            ->acceptJson()
+            ->post($this->baseUrl . '/auth/login', [
+                'email' => $this->user,
+                'password' => $this->password,
+            ])->json();
 
-            $this->validateAccessTokenResponse($response);
+        $this->validateStatusResponse($response);
 
-            $this->access_token = $response['data']['access_token'];
-            $this->refresh_token = $response['data']['refresh_token'];
-            $this->token_storage = $response['data']['expires_in'];
+        if (Arr::get($response, 'data')) {
+            $accessToken = Arr::get($response, 'data.access_token');
+            if ($accessToken !== null) {
+                $this->access_token = $accessToken;
+            }
 
-            Cache::put('access_token', $this->access_token, ($this->token_storage - 3600));
-            Cache::put('refresh_token', $this->refresh_token, ($this->token_storage - 60));
-        } catch (Exception $exception) {
-            dd('refreshAccessToken', __line__, $exception);
+            $refreshToken = Arr::get($response, 'data.refresh_token');
+            if ($refreshToken !== null) {
+                $this->refresh_token = $refreshToken;
+            }
+
+            $expiresIn = Arr::get($response, 'data.expires_in');
+            if ($expiresIn !== null) {
+                $this->expires_in = $expiresIn;
+            }
         }
+
+        Cache::put('readingService.access_token', $this->access_token, ($this->expires_in - 5));
+        Cache::put('readingService.refresh_token', $this->refresh_token);
     }
 
     /**
-     * Function validateAccessTokenResponse()
+     * RefreshToken() function
+     *
+     * @return void
+     */
+    public function refreshToken(): void
+    {
+        // /user voor info over de gebruiker
+        $refreshToken = Cache::get('readingService.refresh_token');
+
+        $response = Http::withOptions([
+            'verify' => true,
+            'debug' => true,
+        ])
+            ->acceptJson()
+            ->post($this->baseUrl . '/auth/refresh-token', [
+                'token_type' => "Bearer",
+                'refresh_token' => $refreshToken,
+            ])
+            ->json();
+        dd('refreshToken', __line__, $response);
+        /* - - - - - - - - - - - - - - */
+
+        $this->validateStatusResponse($response);
+
+        if (Arr::get($response, 'data')) {
+            $accessToken = Arr::get($response, 'data.access_token');
+            if ($accessToken && $accessToken !== null) {
+                $this->access_token = $accessToken;
+            }
+
+            $refreshToken = Arr::get($response, 'data.refresh_token');
+            if ($refreshToken && $refreshToken !== null) {
+                $this->refresh_token = $refreshToken;
+            }
+
+            $tokenStorage = Arr::get($response, 'data.expires_in');
+            if ($tokenStorage && $tokenStorage !== null) {
+                $this->expires_in = $accessToken;
+            }
+        }
+
+        Cache::put('readingService.access_token', $this->access_token, ($this->expires_in - 5));
+        Cache::put('readingService.refresh_token', $this->refresh_token);
+    }
+
+    /**
+     * Function validateStatusResponse()
      *
      * @param object $response
      *
      * @return bool|Exception
      */
-    protected function validateAccessTokenResponse(array $response): ?bool
+    public function validateStatusResponse(array $response)
     {
         $statusCode = self::getHttpStatusCode($response);
 
-        if (self::isHttpSuccess($statusCode)) {
-            return true;
-        } else {
-            throw new Exception((string) $statusCode);
+        if (!self::isHttpSuccess($statusCode)) {
+            throw new Exception('Failed with status code: ' . $statusCode);
         }
     }
 
@@ -159,19 +171,20 @@ class ReadingsService
      *
      * @return string|Exception
      **/
-    protected function getP4RequestUrl(string $reason): ?string
+    public function getP4RequestUrl(string $reason): string
     {
         switch ($reason) {
-            case 'interval':
+            case 'hour':
             case 'day':
+            case 'week':
             case 'month':
+            case 'year':
                 break;
             default:
-                dd('getP4RequestUrl', __LINE__);
-                throw new Exception('Found invalide reason: ' . $reason . '!');
+                throw new Exception('Found invalid reason: ' . $reason . '!');
         }
 
-        return $this->url . 'readings/' . $reason;
+        return $this->baseUrl . '/readings/' . $reason;
     }
 
     /**
@@ -180,14 +193,12 @@ class ReadingsService
      * @param Carbon $date
      * @return string|null
      */
-    protected function validateDate(Carbon $date): ?string
+    public function validateDate($date): string
     {
-        try {
-            $date = Carbon::parse($date);
-            return $date->format('Y-m-d');
-        } catch (Exception $e) {
-            dd('validateDate', __LINE__);
-            throw new Exception('Found Invalide date in date array');
+        if ($date instanceof Carbon) {
+            return $date->utc()->toJSON();
+        } else {
+            return Carbon::createFromFormat('Y-m-d\TH:i:s.uP', $date)->utc()->toJSON();
         }
     }
 
@@ -197,23 +208,17 @@ class ReadingsService
      * @param array $date_array
      * @return array|null
      */
-    protected function dateArrayToString(array $date_array): ?array
+    public function datesToString($dateFrom, $dateTo): array
     {
-        $size = count($date_array);
+        $manipulatedDateFrom = $this->validateDate($dateFrom);
+        $manipulatedDateTo = $this->validateDate($dateTo);
 
-        if ($size == 1) {
-            return array(
-                'reading_date' => $this->validateDate($date_array[0]),
-            );
-        } elseif ($size == 2) {
-            return array(
-                'reading_date_from' => $this->validateDate($date_array[0]),
-                'reading_date_to' => $this->validateDate($date_array[1]),
-            );
-        } else {
-            dd('dateArrayToString', __LINE__);
-            throw new Exception('Invalide size of date array!');
-        }
+        return [
+            'reading_date_from' => $manipulatedDateFrom,
+            'reading_date_to' => $manipulatedDateTo,
+        ];
+        
+        throw new Exception('Invalid size of date array!');
     }
 
     /**
@@ -222,32 +227,15 @@ class ReadingsService
      * @param array $ean_array
      * @return array|null
      */
-    protected function eanArrayToString(array $ean_array): ?array
+    public function eanArrayToString(array $ean_array): array
     {
         foreach ($ean_array as $ean) {
             if (!EAN::isEAN18($ean)) {
-                dd('eanArrayToString', __LINE__);
-                throw new Exception('Found invalide EAN-code in ean array!');
+                throw new Exception('Found invalid EAN-code: ' . $ean . '!');
             }
         }
-        return array('connection_eans' => $ean_array);
-    }
 
-    /**
-     * Undocumented function
-     *
-     * @param string $reason
-     * @param array $eans
-     * @return void
-     */
-    public function requestMeterData(string $reason, array $eans)
-    {
-        return Http::withToken($this->getAccessToken())
-            ->acceptJson()
-            ->post(
-                $this->getMeterRequestUrl($reason),
-                $this->eanArrayToString($eans),
-            )->json();
+        return ['connection_eans' => $ean_array];
     }
 
     /**
@@ -258,25 +246,25 @@ class ReadingsService
      * @param array $date
      * @return array
      */
-    public function requestP4Data(string $reason, array $eans, array $date): array
+    public function requestP4Data(string $reason, array $eans, $dateFrom, $dateTo): array
     {
         try {
             $response = Http::withToken($this->getAccessToken())
+                ->retry(3, 3000)
                 ->acceptJson()
                 ->post(
-                    $this->GetP4RequestUrl($reason),
+                    $this->getP4RequestUrl($reason),
                     array_merge(
-                        $this->dateArrayToString($date),
+                        $this->datesToString($dateFrom, $dateTo),
                         $this->eanArrayToString($eans)
                     )
                 )->json();
-
-            $this->validateAccessTokenResponse($response);
-
+            
+            $this->validateStatusResponse($response);
+            
             return $response;
         } catch (Exception $e) {
-            dd('requestP4Data', __LINE__);
-            throw new Exception((string) $e);
+            throw new Exception('Failed to retrieve P4 data!');
         }
     }
 }

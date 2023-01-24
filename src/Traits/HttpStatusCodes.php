@@ -39,8 +39,8 @@ trait HttpStatusCodes
     /**
      * Function getHttpStatus() returns HTTP error code with information describing the code
      *
-     * @param object $errorCode
-     * @return string
+     * @param array $errorCode
+     * @return int
      */
     public static function getHttpStatusCode(array $errorCode): int
     {

@@ -20,9 +20,9 @@ class ReadingsService
     public $password;
     public $baseUrl;
 
-    public $access_token;
-    public $refresh_token;
-    public $expires_in;
+    public $accessToken;
+    public $refreshToken;
+    public $expiresIn;
 
     /**
      * Function __construct
@@ -34,11 +34,12 @@ class ReadingsService
     public function __construct()
     {
         $config              = app('config')->get('config');
+
         $this->user          = $config['ENERCALC_USER'];
         $this->password      = $config['ENERCALC_PASSWORD'];
         $this->baseUrl       = $config['ENERCALC_URL'];
-        $this->access_token  = null;
-        $this->refresh_token = null;
+        $this->accessToken  = null;
+        $this->refreshToken = null;
     }
 
     /**
@@ -47,19 +48,19 @@ class ReadingsService
      * @return string
      **/
     public function getAccessToken(): string
-    {   
+    {
         if (Cache::has('readingService.access_token')) {
             return Cache::get('readingService.access_token');
         }
         
         if (Cache::has('readingService.refresh_token')) {
             $this->refreshToken();
-            return $this->access_token;
+            return $this->accessToken;
         }
 
         $this->login();
 
-        return $this->access_token;
+        return $this->accessToken;
     }
 
     /**
@@ -84,22 +85,22 @@ class ReadingsService
         if (Arr::get($response, 'data')) {
             $accessToken = Arr::get($response, 'data.access_token');
             if ($accessToken !== null) {
-                $this->access_token = $accessToken;
+                $this->accessToken = $accessToken;
             }
 
             $refreshToken = Arr::get($response, 'data.refresh_token');
             if ($refreshToken !== null) {
-                $this->refresh_token = $refreshToken;
+                $this->refreshToken = $refreshToken;
             }
 
             $expiresIn = Arr::get($response, 'data.expires_in');
             if ($expiresIn !== null) {
-                $this->expires_in = $expiresIn;
+                $this->expiresIn = $expiresIn;
             }
         }
 
-        Cache::put('readingService.access_token', $this->access_token, ($this->expires_in - 5));
-        Cache::put('readingService.refresh_token', $this->refresh_token);
+        Cache::put('readingService.access_token', $this->accessToken, ($this->expiresIn - 5));
+        Cache::put('readingService.refresh_token', $this->refreshToken);
     }
 
     /**
@@ -118,42 +119,41 @@ class ReadingsService
         ])
             ->acceptJson()
             ->post($this->baseUrl . '/auth/refresh-token', [
-                'token_type' => "Bearer",
+                'token_type' => 'Bearer',
                 'refresh_token' => $refreshToken,
             ])
             ->json();
-        dd('refreshToken', __line__, $response);
-        /* - - - - - - - - - - - - - - */
+        //dd('refreshToken', __line__, $response);
 
         $this->validateStatusResponse($response);
 
         if (Arr::get($response, 'data')) {
             $accessToken = Arr::get($response, 'data.access_token');
             if ($accessToken && $accessToken !== null) {
-                $this->access_token = $accessToken;
+                $this->accessToken = $accessToken;
             }
 
             $refreshToken = Arr::get($response, 'data.refresh_token');
             if ($refreshToken && $refreshToken !== null) {
-                $this->refresh_token = $refreshToken;
+                $this->refreshToken = $refreshToken;
             }
 
             $tokenStorage = Arr::get($response, 'data.expires_in');
             if ($tokenStorage && $tokenStorage !== null) {
-                $this->expires_in = $accessToken;
+                $this->expiresIn = $accessToken;
             }
         }
 
-        Cache::put('readingService.access_token', $this->access_token, ($this->expires_in - 5));
-        Cache::put('readingService.refresh_token', $this->refresh_token);
+        Cache::put('readingService.access_token', $this->accessToken, ($this->expiresIn - 5));
+        Cache::put('readingService.refresh_token', $this->refreshToken);
     }
 
     /**
      * Function validateStatusResponse()
      *
-     * @param object $response
+     * @param array $response
      *
-     * @return bool|Exception
+     * @return ?Exception
      */
     public function validateStatusResponse(array $response)
     {
@@ -190,52 +190,58 @@ class ReadingsService
     /**
      * ValidateDate() function
      *
-     * @param Carbon $date
-     * @return string|null
+     * @param mixed $date
+     *
+     * @return Carbon
      */
-    public function validateDate($date): string
+    public function validateDate($date): Carbon
     {
         if ($date instanceof Carbon) {
-            return $date->utc()->toJSON();
+            return $date;
         } else {
-            return Carbon::createFromFormat('Y-m-d\TH:i:s.uP', $date)->utc()->toJSON();
+            return Carbon::createFromFormat('Y-m-d\TH:i:s.uP', $date);
         }
     }
 
     /**
-     * DateArrayToString() function
+     * datesToString() function
      *
-     * @param array $date_array
-     * @return array|null
+     * @param mixed $dateFrom
+     * @param mixed $dateTo
+     *
+     * @return array|Exception
      */
     public function datesToString($dateFrom, $dateTo): array
     {
         $manipulatedDateFrom = $this->validateDate($dateFrom);
         $manipulatedDateTo = $this->validateDate($dateTo);
 
+        if ($manipulatedDateFrom->gte($manipulatedDateTo)) {
+            throw new Exception('Found TO date before FROM date!');
+        }
+
         return [
-            'reading_date_from' => $manipulatedDateFrom,
-            'reading_date_to' => $manipulatedDateTo,
+            'reading_date_from' => $manipulatedDateFrom->utc()->toJSON(),
+            'reading_date_to' => $manipulatedDateTo->utc()->toJSON(),
         ];
-        
-        throw new Exception('Invalid size of date array!');
     }
 
     /**
      * Function eanArrayToString()
      *
      * @param array $ean_array
-     * @return array|null
+     *
+     * @return array
      */
-    public function eanArrayToString(array $ean_array): array
+    public function eanArrayToString(array $eanArray): array
     {
-        foreach ($ean_array as $ean) {
+        foreach ($eanArray as $ean) {
             if (!EAN::isEAN18($ean)) {
                 throw new Exception('Found invalid EAN-code: ' . $ean . '!');
             }
         }
 
-        return ['connection_eans' => $ean_array];
+        return ['connection_eans' => $eanArray];
     }
 
     /**
@@ -243,7 +249,9 @@ class ReadingsService
      *
      * @param string $reason
      * @param array $eans
-     * @param array $date
+     * @param mixed $dateFrom
+     * @param mixed $dateTo
+     *
      * @return array
      */
     public function requestP4Data(string $reason, array $eans, $dateFrom, $dateTo): array

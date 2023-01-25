@@ -70,8 +70,7 @@ class ReadingsService
      */
     public function login(): void
     {
-        $response = Http::retry(3, 1500)
-            ->withOptions([
+        $response = Http::withOptions([
                 'verify' => true,
             ])
             ->acceptJson()
@@ -256,23 +255,18 @@ class ReadingsService
      */
     public function requestP4Data(string $reason, array $eans, $dateFrom, $dateTo): array
     {
-        try {
-            $response = Http::withToken($this->getAccessToken())
-                ->retry(3, 3000)
-                ->acceptJson()
-                ->post(
-                    $this->getP4RequestUrl($reason),
-                    array_merge(
-                        $this->datesToString($dateFrom, $dateTo),
-                        $this->eanArrayToString($eans)
-                    )
-                )->json();
-            
-            $this->validateStatusResponse($response);
-            
-            return $response;
-        } catch (Exception $e) {
-            throw new Exception('Failed to retrieve P4 data!');
-        }
+        $response = Http::withToken($this->getAccessToken())
+            ->acceptJson()
+            ->post(
+                $this->getP4RequestUrl($reason),
+                array_merge(
+                    $this->datesToString($dateFrom, $dateTo),
+                    $this->eanArrayToString($eans)
+                )
+            )->json();
+
+        $this->validateStatusResponse($response);
+        
+        return $response;
     }
 }

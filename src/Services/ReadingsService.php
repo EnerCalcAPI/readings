@@ -253,7 +253,7 @@ class ReadingsService
      *
      * @return array
      */
-    public function requestP4Data(string $reason, array $eans, $dateFrom, $dateTo): array
+    public function requestP4Data(string $reason, array $eans, $dateFrom, $dateTo, $demoOptions = []): array
     {
         $response = Http::withToken($this->getAccessToken())
             ->acceptJson()
@@ -261,7 +261,8 @@ class ReadingsService
                 $this->getP4RequestUrl($reason),
                 array_merge(
                     $this->datesToString($dateFrom, $dateTo),
-                    $this->eanArrayToString($eans)
+                    $this->eanArrayToString($eans),
+                    $demoOptions,
                 )
             )->json();
 

@@ -53,10 +53,10 @@ class ReadingsService
             return Cache::get('readingService.access_token');
         }
         
-        if (Cache::has('readingService.refresh_token')) {
+        /*if (Cache::has('readingService.refresh_token')) {
             $this->refreshToken();
             return $this->accessToken;
-        }
+        }*/
 
         $this->login();
 

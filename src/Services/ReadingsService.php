@@ -159,7 +159,7 @@ class ReadingsService
         $statusCode = self::getHttpStatusCode($response);
 
         if (!self::isHttpSuccess($statusCode)) {
-            throw new Exception('Failed with status code: ' . $statusCode);
+            //throw new Exception('Failed with status code: ' . $statusCode);
         }
     }
 

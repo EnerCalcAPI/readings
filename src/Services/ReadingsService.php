@@ -218,7 +218,7 @@ class ReadingsService
         if ($manipulatedDateFrom->gte($manipulatedDateTo)) {
             throw new Exception('Found TO date before FROM date!');
         }
-
+        
         return [
             'reading_date_from' => $manipulatedDateFrom->utc()->toJSON(),
             'reading_date_to' => $manipulatedDateTo->utc()->toJSON(),
@@ -226,43 +226,43 @@ class ReadingsService
     }
 
     /**
-     * Function eanArrayToString()
+     * Function connectionsArrayToString()
      *
      * @param array $ean_array
      *
      * @return array
      */
-    public function eanArrayToString(array $eanArray): array
+    public function connectionsArrayToString(array $connections): array
     {
-        foreach ($eanArray as $ean) {
-            if (!EAN::isEAN18($ean)) {
-                throw new Exception('Found invalid EAN-code: ' . $ean . '!');
+        foreach ($connections as $connection) {
+            if (!EAN::isEAN18($connection["ean"])) {
+                throw new Exception('Found invalid EAN-code: ' . $connection . '!');
             }
         }
 
-        return ['connection_eans' => $eanArray];
+        return ['connections' => $connections];
     }
 
     /**
      * Function RequestP4Data()
      *
      * @param string $reason
-     * @param array $eans
+     * @param array $connections
      * @param mixed $dateFrom
      * @param mixed $dateTo
      *
      * @return array
      */
-    public function requestP4Data(string $reason, array $eans, $dateFrom, $dateTo, $demoOptions = []): array
+    public function requestP4Data(string $reason, array $connections, $dateFrom, $dateTo, array $options = []): array
     {
         $response = Http::withToken($this->getAccessToken())
             ->acceptJson()
             ->post(
                 $this->getP4RequestUrl($reason),
-                array_merge(
+                array_merge_recursive(
                     $this->datesToString($dateFrom, $dateTo),
-                    $this->eanArrayToString($eans),
-                    $demoOptions,
+                    $this->connectionsArrayToString($connections),
+                    $options,
                 )
             )->json();
 

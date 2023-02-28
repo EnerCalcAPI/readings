@@ -52,11 +52,6 @@ class ReadingsService
         if (Cache::has('readingService.access_token')) {
             return Cache::get('readingService.access_token');
         }
-        
-        /*if (Cache::has('readingService.refresh_token')) {
-            $this->refreshToken();
-            return $this->accessToken;
-        }*/
 
         $this->login();
 
@@ -103,51 +98,6 @@ class ReadingsService
     }
 
     /**
-     * RefreshToken() function
-     *
-     * @return void
-     */
-    public function refreshToken(): void
-    {
-        // /user voor info over de gebruiker
-        $refreshToken = Cache::get('readingService.refresh_token');
-
-        $response = Http::withOptions([
-            'verify' => true,
-            'debug' => true,
-        ])
-            ->acceptJson()
-            ->post($this->baseUrl . '/auth/refresh-token', [
-                'token_type' => 'Bearer',
-                'refresh_token' => $refreshToken,
-            ])
-            ->json();
-        //dd('refreshToken', __line__, $response);
-
-        $this->validateStatusResponse($response);
-
-        if (Arr::get($response, 'data')) {
-            $accessToken = Arr::get($response, 'data.access_token');
-            if ($accessToken && $accessToken !== null) {
-                $this->accessToken = $accessToken;
-            }
-
-            $refreshToken = Arr::get($response, 'data.refresh_token');
-            if ($refreshToken && $refreshToken !== null) {
-                $this->refreshToken = $refreshToken;
-            }
-
-            $tokenStorage = Arr::get($response, 'data.expires_in');
-            if ($tokenStorage && $tokenStorage !== null) {
-                $this->expiresIn = $accessToken;
-            }
-        }
-
-        Cache::put('readingService.access_token', $this->accessToken, ($this->expiresIn - 5));
-        Cache::put('readingService.refresh_token', $this->refreshToken);
-    }
-
-    /**
      * Function validateStatusResponse()
      *
      * @param array $response
@@ -159,7 +109,7 @@ class ReadingsService
         $statusCode = self::getHttpStatusCode($response);
 
         if (!self::isHttpSuccess($statusCode)) {
-            //throw new Exception('Failed with status code: ' . $statusCode);
+            throw new Exception('Failed with status code: ' . $statusCode);
         }
     }
 
@@ -235,7 +185,7 @@ class ReadingsService
     public function connectionsArrayToString(array $connections): array
     {
         foreach ($connections as $connection) {
-            if (!EAN::isEAN18($connection["ean"])) {
+            if (!EAN::isEAN18($connection['ean'])) {
                 throw new Exception('Found invalid EAN-code: ' . $connection . '!');
             }
         }

@@ -38,8 +38,8 @@ class ReadingsService
         $this->user          = $config['ENERCALC_USER'];
         $this->password      = $config['ENERCALC_PASSWORD'];
         $this->baseUrl       = $config['ENERCALC_URL'];
-        $this->accessToken  = null;
-        $this->refreshToken = null;
+        $this->accessToken   = null;
+        $this->refreshToken  = null;
     }
 
     /**
@@ -76,25 +76,24 @@ class ReadingsService
 
         $this->validateStatusResponse($response);
 
-        if (Arr::get($response, 'data')) {
-            $accessToken = Arr::get($response, 'data.access_token');
-            if ($accessToken !== null) {
-                $this->accessToken = $accessToken;
+        if (Arr::get($response, 'data', false)) {
+            if (Arr::get($response, 'data')) {
+                if ($accessToken = Arr::get($response, 'data.access_token', false)) {
+                    $this->accessToken = $accessToken;
+                }
+    
+                if ($refreshToken = Arr::get($response, 'data.refresh_token', false)) {
+                    $this->refreshToken = $refreshToken;
+                }
+    
+                if ($expiresIn = Arr::get($response, 'data.expires_in', false)) {
+                    $this->expiresIn = $expiresIn;
+                }
             }
 
-            $refreshToken = Arr::get($response, 'data.refresh_token');
-            if ($refreshToken !== null) {
-                $this->refreshToken = $refreshToken;
-            }
-
-            $expiresIn = Arr::get($response, 'data.expires_in');
-            if ($expiresIn !== null) {
-                $this->expiresIn = $expiresIn;
-            }
+            Cache::put('readingService.access_token', $this->accessToken, ($this->expiresIn - 5));
+            Cache::put('readingService.refresh_token', $this->refreshToken);
         }
-
-        Cache::put('readingService.access_token', $this->accessToken, ($this->expiresIn - 5));
-        Cache::put('readingService.refresh_token', $this->refreshToken);
     }
 
     /**
@@ -128,6 +127,7 @@ class ReadingsService
             case 'week':
             case 'month':
             case 'year':
+            case 'announce':
                 break;
             default:
                 throw new Exception('Found invalid reason: ' . $reason . '!');
@@ -185,6 +185,12 @@ class ReadingsService
     public function connectionsArrayToString(array $connections): array
     {
         foreach ($connections as $connection) {
+            if (!is_array($connection)) {
+                throw new Exception('No array found: ' . $connection . '!');
+            }
+            if (!array_key_exists('ean', $connection)) {
+                throw new Exception('No key found EAN-code: ' . $connection . '!');
+            }
             if (!EAN::isEAN18($connection['ean'])) {
                 throw new Exception('Found invalid EAN-code: ' . $connection . '!');
             }

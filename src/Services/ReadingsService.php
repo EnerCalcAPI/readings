@@ -77,18 +77,16 @@ class ReadingsService
         $this->validateStatusResponse($response);
 
         if (Arr::get($response, 'data', false)) {
-            if (Arr::get($response, 'data')) {
-                if ($accessToken = Arr::get($response, 'data.access_token', false)) {
-                    $this->accessToken = $accessToken;
-                }
-    
-                if ($refreshToken = Arr::get($response, 'data.refresh_token', false)) {
-                    $this->refreshToken = $refreshToken;
-                }
-    
-                if ($expiresIn = Arr::get($response, 'data.expires_in', false)) {
-                    $this->expiresIn = $expiresIn;
-                }
+            if ($accessToken = Arr::get($response, 'data.access_token', false)) {
+                $this->accessToken = $accessToken;
+            }
+
+            if ($refreshToken = Arr::get($response, 'data.refresh_token', false)) {
+                $this->refreshToken = $refreshToken;
+            }
+
+            if ($expiresIn = Arr::get($response, 'data.expires_in', false)) {
+                $this->expiresIn = $expiresIn;
             }
 
             Cache::put('readingService.access_token', $this->accessToken, ($this->expiresIn - 5));

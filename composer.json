@@ -1,5 +1,6 @@
 {
     "name": "enercalcapi/readings",
+    "version": "1.0.0",
     "description": "EnerCalc Readings API.",
     "type": "library",
     "require": {

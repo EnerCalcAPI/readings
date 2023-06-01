@@ -111,13 +111,13 @@ class ReadingsService
     }
 
     /**
-     * Function getP4RequestUrl()
+     * Function getRequestUrl()
      *
      * @param string $reason
      *
      * @return string|Exception
      **/
-    public function getP4RequestUrl(string $reason): string
+    public function getRequestUrl(string $reason): string
     {
         switch ($reason) {
             case 'hour':
@@ -126,12 +126,11 @@ class ReadingsService
             case 'month':
             case 'year':
             case 'announce':
-                break;
+            case 'max-date':
+                return $this->baseUrl . '/readings/' . $reason;
             default:
                 throw new Exception('Found invalid reason: ' . $reason . '!');
         }
-
-        return $this->baseUrl . '/readings/' . $reason;
     }
 
     /**
@@ -212,12 +211,26 @@ class ReadingsService
         $response = Http::withToken($this->getAccessToken())
             ->acceptJson()
             ->post(
-                $this->getP4RequestUrl($reason),
+                $this->getRequestUrl($reason),
                 array_merge_recursive(
                     $this->datesToString($dateFrom, $dateTo),
                     $this->connectionsArrayToString($connections),
                     $options,
                 )
+            )->json();
+
+        $this->validateStatusResponse($response);
+        
+        return $response;
+    }
+
+    public function requestDateOfLastData(string $reason, array $connections)
+    {
+        $response = Http::withToken($this->getAccessToken())
+            ->acceptJson()
+            ->post(
+                $this->getRequestUrl($reason),
+                ['connections' => $connections]
             )->json();
 
         $this->validateStatusResponse($response);

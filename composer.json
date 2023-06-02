@@ -1,8 +1,17 @@
 {
     "name": "enercalcapi/readings",
-    "version": "1.0.0",
-    "description": "EnerCalc Readings API.",
     "type": "library",
+    "description": "EnerCalc Readings API.",
+    "keywords": ["enercalc", "readings", "api"],
+    "homepage": "https://github.com/EnerCalcAPI/readings",
+    "license": "MIT",
+    "version": "1.0.0",
+    "authors": [
+        {
+            "name": "contributors",
+            "homepage": "https://github.com/EnerCalcAPI/readings/contributors"
+        }
+    ],
     "require": {
         "guzzlehttp/guzzle": "^7.1",
         "illuminate/support": "^8.0",
@@ -24,12 +33,6 @@
             "Enercalcapi\\Readings\\Tests\\": "tests/"
         }
     },
-    "authors": [
-        {
-            "name": "EnerCalcAPI",
-            "email": "dev@enercalc.nl"
-        }
-    ],
     "extra": {
         "laravel": {
             "providers": [
@@ -38,10 +41,11 @@
         }
     },
     "scripts": {
+        "branch-alias": {
+            "dev-master": "1.x-dev"
+        },
         "post-autoload-dump": [
             "@php ./vendor/bin/testbench package:discover"
         ]
-    },
-    "minimum-stability": "dev",
-    "prefer-stable" : true
+    }
 }

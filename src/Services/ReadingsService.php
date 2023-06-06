@@ -224,13 +224,16 @@ class ReadingsService
         return $response;
     }
 
-    public function requestDateOfLastData(string $reason, array $connections)
+    public function requestDateOfLastData(string $reason, array $connections, array $options = [])
     {
         $response = Http::withToken($this->getAccessToken())
             ->acceptJson()
             ->post(
                 $this->getRequestUrl($reason),
-                ['connections' => $connections]
+                array_merge_recursive(
+                    ['connections' => $connections],
+                    $options,
+                )
             )->json();
 
         $this->validateStatusResponse($response);

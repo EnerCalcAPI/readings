@@ -262,7 +262,7 @@ class ReadingsService
                         'ean' => $ean,
                         'type' => $type,
                         'start_date' => $startDate->toJSON(),
-                        'end_date' => $endDate->toJSON(),
+                        'end_date' => $endDate ? $endDate->toJSON() : null,
                     ],
                 )
             )->json();

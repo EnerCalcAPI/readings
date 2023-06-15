@@ -224,7 +224,7 @@ class ReadingsService
         return $response;
     }
 
-    public function requestDateOfLastData(string $reason, array $connections, array $options = [])
+    public function requestDateOfLastData(string $reason, array $connections, array $options = []): array
     {
         $response = Http::withToken($this->getAccessToken())
             ->acceptJson()
@@ -233,6 +233,37 @@ class ReadingsService
                 array_merge_recursive(
                     ['connections' => $connections],
                     $options,
+                )
+            )->json();
+
+        $this->validateStatusResponse($response);
+        
+        return $response;
+    }
+
+    /**
+     * Announces connection data.
+     *
+     * @param string $ean
+     * @param string $type
+     * @param Carbon $startDate
+     * @param Carbon|null $endDate
+     *
+     * @return array
+     */
+    public function announceconnectionData(string $ean, string $type, Carbon $startDate, ?Carbon $endDate = null): array
+    {
+        $response = Http::withToken($this->getAccessToken())
+            ->acceptJson()
+            ->post(
+                $this->getRequestUrl('announce'),
+                array_merge_recursive(
+                    [
+                        'ean' => $ean,
+                        'type' => $type,
+                        'start_date' => $startDate,
+                        'end_date' => $endDate,
+                    ],
                 )
             )->json();
 

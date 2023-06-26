@@ -251,7 +251,7 @@ class ReadingsService
      *
      * @return array
      */
-    public function announceconnectionData(string $ean, string $type, Carbon $startDate, ?Carbon $endDate = null): array
+    public function announceConnectionData(string $ean, string $type, Carbon $startDate, ?Carbon $endDate = null): array
     {
         $response = Http::withToken($this->getAccessToken())
             ->acceptJson()

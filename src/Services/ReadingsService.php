@@ -16,6 +16,7 @@ class ReadingsService
 {
     use HttpStatusCodes;
 
+    public $clientKey;
     public $user;
     public $password;
     public $baseUrl;
@@ -35,6 +36,7 @@ class ReadingsService
     {
         $config              = app('config')->get('config');
 
+        $this->clientKey     = $config['ENERCALC_CLIENT_KEY'];
         $this->user          = $config['ENERCALC_USER'];
         $this->password      = $config['ENERCALC_PASSWORD'];
         $this->baseUrl       = $config['ENERCALC_URL'];
@@ -106,7 +108,12 @@ class ReadingsService
         $statusCode = self::getHttpStatusCode($response);
 
         if (!self::isHttpSuccess($statusCode)) {
-            throw new Exception('Failed with status code: ' . $statusCode);
+            $containsMetaData = Arr::get($response, 'meta');
+            if ($containsMetaData) {
+                throw new Exception(json_encode($containsMetaData));
+            } else {
+                throw new Exception('Failed with status code: ' . $statusCode . ' and does not contain meta information.');
+            }
         }
     }
 
@@ -147,6 +154,16 @@ class ReadingsService
         } else {
             return Carbon::createFromFormat('Y-m-d\TH:i:s.uP', $date);
         }
+    }
+
+    /**
+     * Adds the client key to an array and returns it.
+     *
+     * @return array The array containing the client key.
+     */
+    public function addClientKey(): array
+    {
+        return ['client_key' => $this->clientKey];
     }
 
     /**
@@ -214,6 +231,7 @@ class ReadingsService
                 $this->getRequestUrl($reason),
                 array_merge_recursive(
                     $this->datesToString($dateFrom, $dateTo),
+                    $this->addClientKey(),
                     $this->connectionsArrayToString($connections),
                     $options,
                 )
@@ -231,6 +249,7 @@ class ReadingsService
             ->post(
                 $this->getRequestUrl($reason),
                 array_merge_recursive(
+                    $this->addClientKey(),
                     ['connections' => $connections],
                     $options,
                 )
@@ -259,6 +278,8 @@ class ReadingsService
                 $this->getRequestUrl('announce'),
                 array_merge_recursive(
                     [
+                        $this->addClientKey(),
+                        'client_id' => $clientId,
                         'ean' => $ean,
                         'type' => $type,
                         'start_date' => $startDate->toJSON(),

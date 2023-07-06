@@ -163,7 +163,7 @@ class ReadingsService
      */
     public function addClientKey(): array
     {
-        return ['client_key' => $this->clientKey];
+        return ['client_key' => (int) $this->clientKey];
     }
 
     /**

@@ -277,8 +277,8 @@ class ReadingsService
             ->post(
                 $this->getRequestUrl('announce'),
                 array_merge_recursive(
+                    $this->addClientKey(),
                     [
-                        $this->addClientKey(),
                         'client_id' => $clientId,
                         'ean' => $ean,
                         'type' => $type,
